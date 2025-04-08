@@ -11,7 +11,7 @@ Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 float smoothedPressure = 0;
 float smoothedPressure2 = 0;
 
-float smoothingFactor = 0.3; // Increase for smoother response
+float smoothingFactor = 2; // Increase for smoother response
 void setup() {
   // put your setup code here, to run once:
   strip.begin();
@@ -31,9 +31,9 @@ numLit = constrain(numLit, 0, NUM_LEDS);
   // put your main code here, to run repeatedly:
   int rawPressure2 = analogRead(PRESSURE_PIN2);
   Serial.println(rawPressure); 
-  delay(500);
+  delay(200);
 
-  if(rawPressure > 5 ){
+  if(rawPressure > 5){
     for (int i = 0; i < NUM_LEDS; i++) {
     if (i < numLit) {
       strip.setPixelColor(i, strip.Color(0, 255, 0)); // Green
