@@ -45,7 +45,9 @@ numLit = constrain(numLit, 0, NUM_LEDS);
     } 
     else if (rawPressure < 5){
       //figure out how to turn off led strip
-      strip.setPixelColor(10, strip.Color(0, 0, 0)); // Green
+for (int i = 0; i < NUM_LEDS; i++) {
+  strip.setPixelColor(i, 0); // Turns off every LED
+}
     }
 //trying to figure out how to make the led strip turn off once pressure is gone, tried adding to conditional statement and chagning color values
 strip.show();
