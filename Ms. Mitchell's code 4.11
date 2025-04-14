@@ -1,0 +1,53 @@
+#include <Adafruit_NeoPixel.h>
+
+#define LED_PIN        9      // Pin connected to NeoPixel ring
+#define NUMPIXELS      62     // Number of NeoPixels
+
+#define FSR1_PIN       A0     // First force sensor
+#define FSR2_PIN       A1     // Second force sensor
+
+#define THRESHOLD      100    // Minimum pressure to consider it "pressed"
+
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+void setup() {
+  pixels.begin();
+  Serial.begin(9600);
+}
+
+void loop() {
+  int fsr1 = analogRead(FSR1_PIN);
+  int fsr2 = analogRead(FSR2_PIN);
+
+  Serial.print("FSR1: ");
+  Serial.print(fsr1);
+  Serial.print(" | FSR2: ");
+  Serial.println(fsr2);
+
+  // Default off
+  int red = 0;
+  int green = 0;
+  int blue = 0;
+
+  if (fsr1 > 65 && fsr1 < 100) {
+    // If FSR1 is pressed, turn green
+    red = 0;
+    green = 255;
+    blue = 0;
+  } 
+  // else if (fsr2 > 100) {
+  //   // If FSR2 is pressed, turn red
+  //   red = 255;
+  //   green = 0;
+  //   blue = 0;
+  // }
+
+  // Update all NeoPixels
+  for (int i = 0; i < NUMPIXELS; i++) {
+    pixels.setPixelColor(i, pixels.Color(red, green, blue));
+  }
+  pixels.show();
+
+  delay(50);
+}
+
