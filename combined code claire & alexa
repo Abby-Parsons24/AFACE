@@ -1,0 +1,104 @@
+#include <LiquidCrystal.h>
+
+#define PRESSURE_PIN A0
+#define PRESSURE_PIN_1 A1
+#define PRESSURE_PIN_2 A2
+#define PRESSURE_PIN_3 A3
+
+// LCD pin setup
+const int rs = 31, en = 35, d4 = 39, d5 = 43, d6 = 47, d7 = 51;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+// Questions and categories
+const int NUM_QUESTIONS = 20;
+String questions[NUM_QUESTIONS] = {
+  "How would you feel if you won a prize?",
+  "How would you feel if your friend moved away?",
+  "How would you feel if someone broke your toy?",
+  "How would you feel if you were left out?",
+  "How would you feel on your birthday?",
+  "How would you feel if your pet ran away?",
+  "How would you feel if someone lied to you?",
+  "How would you feel after getting a hug?",
+  "How would you feel if you failed a test?",
+  "How would you feel if someone yelled at you?",
+  "How would you feel if you helped someone?",
+  "How would you feel if you lost your game?",
+  "How would you feel if you ate ice cream?",
+  "How would you feel if you were sick?",
+  "How would you feel if you got a new toy?",
+  "How would you feel if it was raining all week?",
+  "How would you feel if someone cut in line?",
+  "How would you feel if you got a compliment?",
+  "How would you feel if you spilled your drink?",
+  "How would you feel if your team won?"
+};
+
+String categories[NUM_QUESTIONS] = {
+  "happy", "sad", "angry", "bad", "happy",
+  "sad", "angry", "happy", "sad", "angry",
+  "happy", "sad", "happy", "bad", "happy",
+  "sad", "angry", "happy", "bad", "happy"
+};
+
+void setup() {
+  lcd.begin(16, 2);
+  Serial.begin(9600);
+  randomSeed(analogRead(0)); // Helps randomize the question choice
+}
+
+void loop() {
+  int weight0 = analogRead(PRESSURE_PIN);
+  int weight1 = analogRead(PRESSURE_PIN_1);
+  int weight2 = analogRead(PRESSURE_PIN_2);
+  int weight3 = analogRead(PRESSURE_PIN_3);
+  
+  Serial.print("A0: "); Serial.print(weight0);
+  Serial.print(" | A1: "); Serial.print(weight1);
+  Serial.print(" | A2: "); Serial.print(weight2);
+  Serial.print(" | A3: "); Serial.println(weight3);
+
+  lcd.clear();
+
+  int index = random(NUM_QUESTIONS);
+  String question = questions[index];
+  String category = categories[index];
+
+  // Display the question with wrapping
+  for (int i = 0; i < 16 && i < question.length(); i++) {
+    lcd.setCursor(i, 0);
+    lcd.print(question[i]);
+  }
+  for (int i = 16; i < question.length(); i++) {
+    lcd.setCursor(i - 16, 1);
+    lcd.print(question[i]);
+  }
+
+  delay(10000); // Give time to read the question
+
+  lcd.clear();
+  lcd.print("Place the weight");
+
+  // Wait for a weight to be placed
+  while (true) {
+    int weight = analogRead(PRESSURE_PIN);
+    Serial.println(weight);
+
+    if (checkRange(weight, category)) {
+      lcd.clear();
+      lcd.print("Correct!");
+      delay(3000);
+      break; // Move to next question after success
+    }
+    delay(200);
+  }
+}
+
+// Check if weight is in correct range for the category
+bool checkRange(int weight, String category) {
+  if (category == "happy" && weight >= 0 && weight <= 100) return true;
+  if (category == "sad" && weight >= 101 && weight <= 200) return true;
+  if (category == "angry" && weight >= 201 && weight <= 300) return true;
+  if (category == "bad" && weight >= 301 && weight <= 400) return true;
+  return false;
+}
