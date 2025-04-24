@@ -1,0 +1,140 @@
+#include <LiquidCrystal.h>
+#include <Adafruit_NeoPixel.h>
+
+#define PRESSURE_PIN A0
+#define PRESSURE_PIN2 A1
+#define PRESSURE_PIN3 A2
+#define PRESSURE_PIN4 A3
+#define LED_PIN 9
+#define NUM_LEDS 62
+
+Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+const int rs = 31, en = 35, d4 = 39, d5 = 43, d6 = 47, d7 = 51;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+const int NUM_QUESTIONS = 20;
+String questions[NUM_QUESTIONS] = {
+  "How would you feel if you won a prize?",
+  "How would you feel if your friend moved away?",
+  "How would you feel if someone broke your toy?",
+  "How would you feel if you were left out?",
+  "How would you feel on your birthday?",
+  "How would you feel if your pet ran away?",
+  "How would you feel if someone lied to you?",
+  "How would you feel after getting a hug?",
+  "How would you feel if you failed a test?",
+  "How would you feel if someone yelled at you?",
+  "How would you feel if you helped someone?",
+  "How would you feel if you lost your game?",
+  "How would you feel if you ate ice cream?",
+  "How would you feel if you were sick?",
+  "How would you feel if you got a new toy?",
+  "How would you feel if it was raining all week?",
+  "How would you feel if someone cut in line?",
+  "How would you feel if you got a compliment?",
+  "How would you feel if you spilled your drink?",
+  "How would you feel if your team won?"
+};
+
+String categories[NUM_QUESTIONS] = {
+  "happy", "sad", "angry", "bad", "happy",
+  "sad", "angry", "happy", "sad", "angry",
+  "happy", "sad", "happy", "bad", "happy",
+  "sad", "angry", "happy", "bad", "happy"
+};
+
+void setup() {
+  lcd.begin(16, 2);
+  Serial.begin(9600);
+  strip.begin();
+  strip.show();
+  randomSeed(analogRead(0));
+}
+
+void loop() {
+  lcd.clear();
+
+  int index = random(NUM_QUESTIONS);
+  String question = questions[index];
+  String category = categories[index];
+
+  // Display question with wrap
+  for (int i = 0; i < 16 && i < question.length(); i++) {
+    lcd.setCursor(i, 0);
+    lcd.print(question[i]);
+  }
+  for (int i = 16; i < question.length(); i++) {
+    lcd.setCursor(i - 16, 1);
+    lcd.print(question[i]);
+  }
+
+  delay(3000);
+  lcd.clear();
+  lcd.print("Place the weight");
+
+  while (true) {
+    int w1 = analogRead(PRESSURE_PIN);
+    int w2 = analogRead(PRESSURE_PIN2);
+    int w3 = analogRead(PRESSURE_PIN3);
+    int w4 = analogRead(PRESSURE_PIN4);
+
+    int maxWeight = max(max(w1, w2), max(w3, w4));
+    int maxSensor = 1;
+    if (maxWeight == w2) maxSensor = 2;
+    else if (maxWeight == w3) maxSensor = 3;
+    else if (maxWeight == w4) maxSensor = 4;
+
+    Serial.print("W1: "); Serial.print(w1);
+    Serial.print(" | W2: "); Serial.print(w2);
+    Serial.print(" | W3: "); Serial.print(w3);
+    Serial.print(" | W4: "); Serial.print(w4);
+    Serial.print(" | Max: "); Serial.print(maxWeight);
+    Serial.print(" | Sensor: "); Serial.println(maxSensor);
+
+    if (checkRangeBySensor(maxWeight, category, maxSensor)) {
+      lcd.clear();
+      lcd.print("Correct!");
+
+      for (int i = 0; i < NUM_LEDS; i++) {
+        strip.setPixelColor(i, strip.Color(0, 255, 0)); // green
+      }
+      strip.show();
+      delay(3000);
+
+      for (int i = 0; i < NUM_LEDS; i++) {
+        strip.setPixelColor(i, 0);
+      }
+      strip.show();
+      break;
+    }
+
+    delay(200);
+  }
+}
+
+// Use different ranges depending on which sensor triggered
+bool checkRangeBySensor(int weight, String category, int sensor) {
+  if (sensor == 1) {
+    if (category == "happy" && weight >= 0 && weight <= 100) return true;
+    if (category == "sad" && weight >= 101 && weight <= 200) return true;
+    if (category == "angry" && weight >= 201 && weight <= 300) return true;
+    if (category == "bad" && weight >= 301 && weight <= 400) return true;
+  } else if (sensor == 2) {
+    if (category == "happy" && weight >= 50 && weight <= 150) return true;
+    if (category == "sad" && weight >= 151 && weight <= 250) return true;
+    if (category == "angry" && weight >= 251 && weight <= 350) return true;
+    if (category == "bad" && weight >= 351 && weight <= 450) return true;
+  } else if (sensor == 3) {
+    if (category == "happy" && weight >= 60 && weight <= 120) return true;
+    if (category == "sad" && weight >= 121 && weight <= 180) return true;
+    if (category == "angry" && weight >= 181 && weight <= 240) return true;
+    if (category == "bad" && weight >= 241 && weight <= 300) return true;
+  } else if (sensor == 4) {
+    if (category == "happy" && weight >= 30 && weight <= 90) return true;
+    if (category == "sad" && weight >= 91 && weight <= 160) return true;
+    if (category == "angry" && weight >= 161 && weight <= 230) return true;
+    if (category == "bad" && weight >= 231 && weight <= 300) return true;
+  }
+  return false;
+}
