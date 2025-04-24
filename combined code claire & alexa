@@ -51,8 +51,8 @@ void loop() {
   
   Serial.print("A0: "); Serial.print(weight0);
   Serial.print(" | A1: "); Serial.print(weight1);
-  Serial.print(" | A2: "); Serial.print(weight2);
-  Serial.print(" | A3: "); Serial.println(weight3);
+//  Serial.print(" | A2: "); Serial.print(weight2);
+//  Serial.print(" | A3: "); Serial.println(weight3);
 
   lcd.clear();
 
